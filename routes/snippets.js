@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
   try {
     const search = req.query.search;
     const questions = await Snippets.find({
-      question: { $regex: search },
+      question: { $regex: search, $options: "i" },
     }).limit(5);
     res.status(200).send(questions);
   } catch (error) {
@@ -27,6 +27,21 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/qa/all", async (req, res) => {
+  try {
+    const questions = await Snippets.find({}).exec();
+    if (!questions.length) {
+      res.status(200).send({ questions: 0, solutions: 0 });
+    } else {
+      const solutions = questions.map((question) => question.answers.length);
+      res
+        .status(200)
+        .send({ questions: questions.length, solutions: solutions.length });
+    }
+  } catch (error) {
+    res.status(400).send(error.message);
+  }
+});
 router.post("/", async (req, res) => {
   try {
     const { question, answers, categoryId } = req.body;
